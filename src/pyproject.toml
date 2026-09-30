@@ -8,3 +8,6 @@ dependencies = [
     "matplotlib>=3.11.2",
     "pyyaml>=6.0.3",
 ]
+
+[tool.pyright]
+typeCheckingMode = "strict"

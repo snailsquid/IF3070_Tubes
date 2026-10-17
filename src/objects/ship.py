@@ -7,6 +7,10 @@ class Ship:
     self.vehicles : list[Vehicle] = []
     self.slots : list[list[bool]] = [[False for _ in range(width)] for _ in range(height)]
     self.max_capacity = max_capacity
+  @classmethod
+  def new_from_config(cls, to_be_copied):
+    """Ts only copies the config not the vehicles yea"""
+    return Ship(to_be_copied.rect.width, to_be_copied.rect.height, to_be_copied.max_capacity)
   def slot_is_occupied(self, x: int, y: int) -> bool:
     if not (0 <= x < self.rect.width and 0 <= y < self.rect.height):
       raise IndexError("Slot is outside the ship")

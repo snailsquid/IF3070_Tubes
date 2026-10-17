@@ -73,3 +73,6 @@ class State:
       vehicle.orientation = item["orientation"]
       ship.move(vehicle, item["x"], item["y"])
     return cls(ship)
+  
+  def get_objective(self) -> int:
+    return sum(vehicle.shipping_fee for vehicle in self.ship.vehicles)

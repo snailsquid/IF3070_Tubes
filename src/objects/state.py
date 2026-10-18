@@ -1,3 +1,4 @@
+from copy import deepcopy
 from pathlib import Path
 from typing import TypedDict, cast
 
@@ -82,30 +83,24 @@ class State:
     ship_data = data["ship"]
     ship = Ship(ship_data["width"], ship_data["height"], ship_data["max_capacity"])
     for item in ship_data["vehicles"]:
-      vehicle = Vehicle(
-        item["id"], item["width"], item["height"], item["weight"],
-        item["shipping_fee"], item["eta"],
-      )
+      vehicle = Vehicle(item["id"], item["width"], item["height"], item["weight"], item["shipping_fee"], item["eta"])
       vehicle.orientation = item["orientation"]
       ship.move(vehicle, item["x"], item["y"])
     vehicles_outside_data = data["vehicles_outside"]
-    vehicles_outside : list[Vehicle] = []
+    vehicles_outside: list[Vehicle] = []
     for item in vehicles_outside_data:
-      vehicle = Vehicle(
-        item["id"], item["width"], item["height"], item["weight"],
-        item["shipping_fee"], item["eta"],
-      )
+      vehicle = Vehicle(item["id"], item["width"], item["height"], item["weight"], item["shipping_fee"], item["eta"])
       vehicles_outside.append(vehicle)
-    
+
     return cls(ship, vehicles_outside)
-  
+
   def get_objective(self) -> int:
     return sum(vehicle.shipping_fee for vehicle in self.ship.vehicles)
 
-class StateFactory():
+class StateFactory:
   def __init__(self, ship: Ship, vehicles: list[Vehicle]) -> None:
     self.ship = Ship.new_from_config(ship)
-    self.vehicles = vehicles
+    self.vehicles = deepcopy(vehicles)
+
   def create_state(self) -> State:
-    state = State(Ship.new_from_config(self.ship), self.vehicles)
-    return state
+    return State(Ship.new_from_config(self.ship), deepcopy(self.vehicles))

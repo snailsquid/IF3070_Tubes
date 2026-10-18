@@ -4,7 +4,6 @@ from matplotlib.axes import Axes
 from algo.objective import objective
 from objects.ship import Ship
 from objects.state import State
-from objects.vehicle import Vehicle
 from visualizations.vehicle import visualize_vehicle
 
 def visualize_ship(ship: Ship, axes: Axes) -> None:
@@ -18,34 +17,24 @@ def visualize_ship(ship: Ship, axes: Axes) -> None:
   for vehicle in ship.vehicles:
     visualize_vehicle(vehicle, axes)
 
-def visualize_state(state: State, vehicles: list[Vehicle]) -> None:
+def visualize_state(state: State) -> None:
   figure = plt.figure(figsize=(10, 6))
   ship_axes = figure.add_subplot(1, 2, 1)
   outside_axes = figure.add_subplot(1, 2, 2)
 
   visualize_ship(state.ship, ship_axes)
 
-  outside = [
-    vehicle
-    for vehicle in vehicles
-    if vehicle.rect.x == -1 and vehicle.rect.y == -1]
   outside_text = "\n".join(
-    f"{vehicle.id} ({vehicle.rect.width}x{vehicle.rect.height}, "
-    f"{vehicle.orientation})"
-    for vehicle in outside
+    f"{vehicle.id} ({vehicle.rect.width}x{vehicle.rect.height}, {vehicle.orientation})"
+    for vehicle in state.vehicles_outside
   )
 
   ship_axes.set_title("Ship")
   outside_axes.set_title("Outside")
   outside_axes.set_axis_off()
-  outside_axes.text(
-    0,
-    1,
-    outside_text if outside_text else "-",
-    va="top",
-    transform=outside_axes.transAxes,
-  )
+  outside_axes.text(0, 1, outside_text if outside_text else "-", va="top", transform=outside_axes.transAxes)
 
   figure.suptitle(f"Value: {objective(state)}")
   figure.tight_layout(rect=(0, 0, 1, 0.95))
   plt.show()
+  plt.close(figure)

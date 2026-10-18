@@ -1,9 +1,13 @@
+from algo.genetic_algorithm.implementation import GARunner
 from objects.ship import Ship
 from objects.vehicle import Vehicle, VehicleBuilder
-from visualizations.ship import visualize_ship
+from objects.state import StateFactory
+from visualizations.ship import visualize_state
+
 
 def init_ship() -> Ship:
-  return Ship(5, 10, 999)
+  return Ship(5, 6, 4500)
+
 
 def init_vehicles() -> list[Vehicle]:
   builder = VehicleBuilder()
@@ -23,10 +27,15 @@ def init_vehicles() -> list[Vehicle]:
     builder.quadcopter(),
   ]
 
-def main():
-  ship: Ship = init_ship()
-  vehicles: list[Vehicle] = init_vehicles()
-  
+
+def main() -> None:
+  ship = init_ship()
+  vehicles = init_vehicles()
+  state_factory = StateFactory(ship, vehicles)
+  algorithm = GARunner(state_factory)
+  state = algorithm.run()
+  visualize_state(state)
+
 
 if __name__ == "__main__":
   main()

@@ -4,11 +4,59 @@ import time
 from copy import deepcopy
 
 from algo.objective import objective
+from objects.ship import Ship
 from objects.state import State, StateFactory
-
+from objects.vehicle import Vehicle
 
 def create_random_state(factory: StateFactory) -> State:
   return factory.create_random_state()
+
+def _swap(ship: Ship, outside: list[Vehicle]) -> None:
+  if outside and (len(ship.vehicles) < 2 or random.random() < 0.5):
+    v_in, v_out = random.choice(ship.vehicles), random.choice(outside)
+    if ship.total_weight - v_in.weight + v_out.weight <= ship.max_capacity:
+      try:
+        ship.replace(v_in, v_out)
+        outside.remove(v_out)
+        outside.append(v_in)
+      except ValueError:
+        orig_x, orig_y = v_in.rect.x, v_in.rect.y
+        ship.remove(v_in)
+        if ship.try_place_randomly(v_out):
+          outside.remove(v_out)
+          outside.append(v_in)
+        else:
+          ship.move(v_in, orig_x, orig_y)
+  else:
+    v1, v2 = random.sample(ship.vehicles, 2)
+    x1, y1, x2, y2 = v1.rect.x, v1.rect.y, v2.rect.x, v2.rect.y
+    ship.remove(v1)
+    ship.remove(v2)
+    try:
+      ship.move(v2, x1, y1)
+      ship.move(v1, x2, y2)
+    except ValueError:
+      if v2 in ship.vehicles:
+        ship.remove(v2)
+      ship.move(v1, x1, y1)
+      ship.move(v2, x2, y2)
+
+
+def _move_random(ship: Ship) -> None:
+  v = random.choice(ship.vehicles)
+  orig_x, orig_y = v.rect.x, v.rect.y
+  ship.remove(v)
+  if not ship.try_place_randomly(v):
+    ship.move(v, orig_x, orig_y)
+
+
+def _orient_random(ship: Ship) -> None:
+  v = random.choice(ship.vehicles)
+  new_ori = "vertical" if v.orientation == "horizontal" else "horizontal"
+  try:
+    ship.orient(v, new_ori)
+  except ValueError:
+    pass
 
 
 def _generate_neighbor(state: State) -> State:
@@ -20,51 +68,17 @@ def _generate_neighbor(state: State) -> State:
   move = random.choice(["swap", "move", "orient"])
 
   if move == "swap" and (len(ship.vehicles) >= 2 or (ship.vehicles and outside)):
-    if outside and (len(ship.vehicles) < 2 or random.random() < 0.5):
-      v_in, v_out = random.choice(ship.vehicles), random.choice(outside)
-      if ship.total_weight - v_in.weight + v_out.weight <= ship.max_capacity:
-        try:
-          ship.replace(v_in, v_out)
-          outside.remove(v_out)
-          outside.append(v_in)
-        except ValueError:
-          orig_x, orig_y = v_in.rect.x, v_in.rect.y
-          ship.remove(v_in)
-          if ship.try_place_randomly(v_out):
-            outside.remove(v_out)
-            outside.append(v_in)
-          else:
-            ship.move(v_in, orig_x, orig_y)
-    else:
-      v1, v2 = random.sample(ship.vehicles, 2)
-      x1, y1, x2, y2 = v1.rect.x, v1.rect.y, v2.rect.x, v2.rect.y
-      ship.remove(v1)
-      ship.remove(v2)
-      try:
-        ship.move(v2, x1, y1)
-        ship.move(v1, x2, y2)
-      except ValueError:
-        if v2 in ship.vehicles:
-          ship.remove(v2)
-        ship.move(v1, x1, y1)
-        ship.move(v2, x2, y2)
-
+    _swap(ship, outside)
   elif move == "move" and ship.vehicles:
-    v = random.choice(ship.vehicles)
-    orig_x, orig_y = v.rect.x, v.rect.y
-    ship.remove(v)
-    if not ship.try_place_randomly(v):
-      ship.move(v, orig_x, orig_y)
-
+    _move_random(ship)
   elif move == "orient" and ship.vehicles:
-    v = random.choice(ship.vehicles)
-    new_ori = "vertical" if v.orientation == "horizontal" else "horizontal"
-    try:
-      ship.orient(v, new_ori)
-    except ValueError:
-      pass
+    _orient_random(ship)
 
   return neighbor
+
+
+def _acceptance_probability(delta: float, temperature: float) -> float:
+  return 1.0 if delta > 0 else math.exp(delta / temperature)
 
 
 class SimulatedAnnealing:
@@ -114,7 +128,7 @@ class SimulatedAnnealing:
       neighbor_val = objective(neighbor)
       delta = neighbor_val - current_val
 
-      prob = 1.0 if delta > 0 else math.exp(delta / temperature)
+      prob = _acceptance_probability(delta, temperature)
       if delta > 0 or random.random() < prob:
         current, current_val = neighbor, neighbor_val
         if current_val > best_val:

@@ -110,3 +110,67 @@ class SteepestAscentHillClimb(_HillClimb):
       self.history.append(current.get_objective())
 
     return current
+
+class SidewaysMoveHillClimb(_HillClimb):
+  def __init__(
+    self,
+    state_factory: StateFactory,
+    max_iterations: int = 1000,
+    max_sideways: int = 100,
+  ):
+    super().__init__(state_factory, max_iterations)
+    if max_sideways < 0:
+      raise ValueError("Batas gerakan menyamping tidak boleh negatif")
+    self.max_sideways = max_sideways
+
+  def run(self, initial_state: State | None = None) -> State:
+    current = initial_state or self.state_factory.create_state()
+    self.history = [current.get_objective()]
+    sideways_moves = 0
+
+    for _ in range(self.max_iterations):
+      current_score = current.get_objective()
+      best_neighbor = None
+      best_score = current_score
+
+      for neighbor in self._iter_neighbors(current):
+        score = neighbor.get_objective()
+        if score >= best_score:
+          best_score = score
+          best_neighbor = neighbor
+
+      if best_neighbor is None:
+        break
+
+      if best_score == current_score:
+        if sideways_moves == self.max_sideways:
+          break
+        sideways_moves += 1
+      else:
+        sideways_moves = 0
+
+      current = best_neighbor
+      self.history.append(current.get_objective())
+
+    return current
+
+
+class StochasticHillClimb(_HillClimb):
+  def run(self, initial_state: State | None = None) -> State:
+    current = initial_state or self.state_factory.create_state()
+    self.history = [current.get_objective()]
+
+    for _ in range(self.max_iterations):
+      current_score = current.get_objective()
+      better_neighbors = [
+        neighbor for neighbor in self._iter_neighbors(current)
+        if neighbor.get_objective() > current_score
+      ]
+
+      if not better_neighbors:
+        break
+
+      current = random.choice(better_neighbors)
+      self.history.append(current.get_objective())
+
+    return current

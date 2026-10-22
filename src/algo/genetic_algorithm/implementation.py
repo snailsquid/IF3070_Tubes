@@ -138,6 +138,10 @@ class SwapMutationStrategy(MutationStrategy):
 
 class GARunner:
   def __init__(self, state_factory: StateFactory, population_size: int = 16, generations: int = 100, crossover_rate: float = 0.85, mutation_rate: float = 0.25):
+    import time as _time
+    self._time = _time
+    self.population_size = population_size
+    self.generations = generations
     factory = StateChromosomeFactory(state_factory)
     population = Population(population_size, factory)
     termination = MaxGenTermination(generations)
@@ -146,10 +150,23 @@ class GARunner:
     pairing = RandomPairPickingStrategy()
     mutation = SwapMutationStrategy(mutation_rate)
     self.genetic_algorithm = GeneticAlgorithm(population, termination, crossover, selection, pairing, mutation)
+    self.initial_state: State | None = None
+    self.duration: float = 0.0
 
   @property
   def history(self) -> list[float]:
     return self.genetic_algorithm.history
 
+  @property
+  def history_avg(self) -> list[float]:
+    return self.genetic_algorithm.history_avg
+
   def run(self) -> State:
-    return cast(StateChromosome, self.genetic_algorithm.run()).state
+    import time as _time
+    # capture initial state (best chromosome before evolving)
+    self.initial_state = cast(StateChromosome, self.genetic_algorithm.best()).state
+    start = _time.perf_counter()
+    result = cast(StateChromosome, self.genetic_algorithm.run()).state
+    self.duration = _time.perf_counter() - start
+    return result
+

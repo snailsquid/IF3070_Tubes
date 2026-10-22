@@ -104,6 +104,7 @@ class GeneticAlgorithm:
     self.pair_picking_strategy = pair_picking_strategy
     self.mutation_strategy = mutation_strategy
     self.history = [self.best().fitness()]
+    self.history_avg = [sum(c.fitness() for c in self.population.chromosomes) / self.population.size]
 
   def best(self) -> Chromosome:
     return max(self.population.chromosomes, key=lambda item: item.fitness())
@@ -125,6 +126,7 @@ class GeneticAlgorithm:
     worst_index = min(range(len(chromosomes)), key=lambda index: chromosomes[index].fitness())
     chromosomes[worst_index] = elite
     self.history.append(self.best().fitness())
+    self.history_avg.append(sum(c.fitness() for c in self.population.chromosomes) / self.population.size)
 
   def select(self) -> None:
     selected = list(self.selection_strategy.pick(self.population.chromosomes))

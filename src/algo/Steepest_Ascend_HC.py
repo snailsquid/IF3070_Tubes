@@ -1,7 +1,8 @@
-import random
+import time
 from copy import copy
 from objects.state import State, StateFactory
 from objects.vehicle import Vehicle
+from visualizations.ship import visualize_hc_results
 
 
 class _HillClimb:
@@ -11,6 +12,22 @@ class _HillClimb:
     self.state_factory = state_factory
     self.max_iterations = max_iterations
     self.history: list[int] = []
+    self.initial_state: State | None = None
+    self.final_state: State | None = None
+    self.duration: float = 0.0
+    self.iterations: int = 0
+
+  def visualize(self, title: str = "Hill Climbing", save_dir: str | None = None) -> None:
+    if self.final_state is None:
+      raise RuntimeError("Jalankan run() terlebih dahulu sebelum visualize()")
+    visualize_hc_results(
+      self.initial_state,
+      self.final_state,
+      self.history,
+      title=title,
+      duration=self.duration,
+      save_dir=save_dir,
+    )
 
   def _clone_vehicle(self, vehicle: Vehicle) -> Vehicle:
     new_vehicle = copy(vehicle)
@@ -89,9 +106,15 @@ class _HillClimb:
 
 
 class SteepestAscentHillClimb(_HillClimb):
+  def visualize(self, title: str = "Steepest Ascent Hill Climbing", save_dir: str | None = None) -> None:
+    super().visualize(title=title, save_dir=save_dir)
+
   def run(self, initial_state: State | None = None) -> State:
+    start_time = time.perf_counter()
     current = initial_state or self.state_factory.create_state()
+    self.initial_state = current
     self.history = [current.get_objective()]
+    self.iterations = 0
 
     for _ in range(self.max_iterations):
       best_neighbor = None
@@ -108,69 +131,8 @@ class SteepestAscentHillClimb(_HillClimb):
 
       current = best_neighbor
       self.history.append(current.get_objective())
+      self.iterations += 1
 
-    return current
-
-class SidewaysMoveHillClimb(_HillClimb):
-  def __init__(
-    self,
-    state_factory: StateFactory,
-    max_iterations: int = 1000,
-    max_sideways: int = 100,
-  ):
-    super().__init__(state_factory, max_iterations)
-    if max_sideways < 0:
-      raise ValueError("Batas gerakan menyamping tidak boleh negatif")
-    self.max_sideways = max_sideways
-
-  def run(self, initial_state: State | None = None) -> State:
-    current = initial_state or self.state_factory.create_state()
-    self.history = [current.get_objective()]
-    sideways_moves = 0
-
-    for _ in range(self.max_iterations):
-      current_score = current.get_objective()
-      best_neighbor = None
-      best_score = current_score
-
-      for neighbor in self._iter_neighbors(current):
-        score = neighbor.get_objective()
-        if score >= best_score:
-          best_score = score
-          best_neighbor = neighbor
-
-      if best_neighbor is None:
-        break
-
-      if best_score == current_score:
-        if sideways_moves == self.max_sideways:
-          break
-        sideways_moves += 1
-      else:
-        sideways_moves = 0
-
-      current = best_neighbor
-      self.history.append(current.get_objective())
-
-    return current
-
-
-class StochasticHillClimb(_HillClimb):
-  def run(self, initial_state: State | None = None) -> State:
-    current = initial_state or self.state_factory.create_state()
-    self.history = [current.get_objective()]
-
-    for _ in range(self.max_iterations):
-      current_score = current.get_objective()
-      better_neighbors = [
-        neighbor for neighbor in self._iter_neighbors(current)
-        if neighbor.get_objective() > current_score
-      ]
-
-      if not better_neighbors:
-        break
-
-      current = random.choice(better_neighbors)
-      self.history.append(current.get_objective())
-
+    self.final_state = current
+    self.duration = time.perf_counter() - start_time
     return current

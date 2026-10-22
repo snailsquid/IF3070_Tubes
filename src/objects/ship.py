@@ -1,3 +1,5 @@
+import random
+
 from objects.rect import Rect
 from objects.vehicle import Vehicle
 
@@ -7,6 +9,32 @@ class Ship:
     self.vehicles: list[Vehicle] = []
     self.slots: list[list[bool]] = [[False for _ in range(width)] for _ in range(height)]
     self.max_capacity = max_capacity
+
+  @property
+  def total_weight(self) -> int:
+    return sum(v.weight for v in self.vehicles)
+
+  def can_fit_weight(self, vehicle: Vehicle) -> bool:
+    return self.total_weight + vehicle.weight <= self.max_capacity
+
+  def try_place_randomly(self, vehicle: Vehicle) -> bool:
+    max_x = self.rect.width - vehicle.rect.width
+    max_y = self.rect.height - vehicle.rect.height
+    if max_x < 0 or max_y < 0:
+      return False
+
+    valid_positions: list[tuple[int, int]] = []
+    for y in range(max_y + 1):
+      for x in range(max_x + 1):
+        if self.vehicle_can_fit(vehicle, x, y):
+          valid_positions.append((x, y))
+
+    if not valid_positions:
+      return False
+
+    x, y = random.choice(valid_positions)
+    self.move(vehicle, x, y)
+    return True
 
   @classmethod
   def new_from_config(cls, ship: "Ship") -> "Ship":

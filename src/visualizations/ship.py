@@ -40,7 +40,6 @@ def visualize_ship(ship: Ship, axes: Axes) -> None:
   for vehicle in ship.vehicles:
     visualize_vehicle(vehicle, axes)
 
-
 def visualize_state(state: State, save_path: str | None = None) -> plt.Figure:
   figure = plt.figure(figsize=(10, 6))
   ship_axes = figure.add_subplot(1, 2, 1)
@@ -66,13 +65,12 @@ def visualize_state(state: State, save_path: str | None = None) -> plt.Figure:
 
   return figure
 
-
 def plot_curves(
   history: list[float],
   history_prob: list[float],
   title: str = "Simulated Annealing",
   save_path: str | None = None,
-) -> plt.Figure:
+) -> plt.Figure: # type: ignore
   figure, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7))
 
   ax1.plot(range(len(history)), history, color="#1f77b4", linewidth=1.5)
@@ -93,7 +91,6 @@ def plot_curves(
 
   if save_path:
     figure.savefig(save_path, bbox_inches="tight")
-
   return figure
 
 
@@ -118,31 +115,13 @@ def plot_hc_curve(
   return figure
 
 
-def save_experiment_yaml(
-  path: str,
-  title: str,
-  initial_state: State | None,
-  final_state: State,
-  history: list[float] | list[int],
-  duration: float | None = None,
-  extra_info: dict | None = None,
-) -> None:
-  data: dict = {
-    "experiment": title,
-    "objective_awal": objective(initial_state) if initial_state is not None else None,
-    "objective_akhir": objective(final_state),
-    "banyak_iterasi": len(history) - 1,
-    "durasi_detik": round(duration, 4) if duration is not None else None,
-  }
-  if extra_info:
-    data.update(extra_info)
-
-  data["final_state"] = {
+def state_to_dict(state: State) -> dict:
+  return {
     "ship": {
-      "width": final_state.ship.rect.width,
-      "height": final_state.ship.rect.height,
-      "max_capacity": final_state.ship.max_capacity,
-      "total_weight": sum(v.weight for v in final_state.ship.vehicles),
+      "width": state.ship.rect.width,
+      "height": state.ship.rect.height,
+      "max_capacity": state.ship.max_capacity,
+      "total_weight": sum(v.weight for v in state.ship.vehicles),
       "vehicles": [
         {
           "id": v.id,
@@ -155,7 +134,7 @@ def save_experiment_yaml(
           "shipping_fee": v.shipping_fee,
           "eta": v.eta,
         }
-        for v in final_state.ship.vehicles
+        for v in state.ship.vehicles
       ],
     },
     "vehicles_outside": [
@@ -167,12 +146,15 @@ def save_experiment_yaml(
         "shipping_fee": v.shipping_fee,
         "eta": v.eta,
       }
-      for v in final_state.vehicles_outside
+      for v in state.vehicles_outside
     ],
   }
 
+
+def save_yaml_report(path: str, report_data: dict) -> None:
+  os.makedirs(os.path.dirname(path), exist_ok=True)
   with open(path, "w", encoding="utf-8") as f:
-    yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
+    yaml.safe_dump(report_data, f, sort_keys=False, default_flow_style=False)
 
 
 def visualize_hc_results(
@@ -200,7 +182,7 @@ def visualize_hc_results(
 
   init_path = None
   final_path = None
-  plot_path = None
+  curve_path = None
 
   if save_dir:
     os.makedirs(save_dir, exist_ok=True)
@@ -209,19 +191,24 @@ def visualize_hc_results(
       initial_state.save_yaml(os.path.join(save_dir, "initial_state.yaml"))
     final_path = os.path.join(save_dir, "final_state.png")
     final_state.save_yaml(os.path.join(save_dir, "final_state.yaml"))
-    plot_path = os.path.join(save_dir, "objective_curve.png")
-    info_path = os.path.join(save_dir, os.path.basename(save_dir) + ".yaml")
+    curve_path = os.path.join(save_dir, "objective_curve.png")
+    yaml_report_path = os.path.join(save_dir, "result.yaml")
 
-    save_experiment_yaml(
-      info_path,
-      title,
-      initial_state,
-      final_state,
-      history,
-      duration=duration,
-      extra_info=extra_info,
-    )
-    print(f"Hasil dan grafik disimpan di: {save_dir}\n")
+    report_data = {
+      "algorithm": title,
+      "objective_awal": objective(initial_state) if initial_state is not None else None,
+      "objective_akhir": objective(final_state),
+      "banyak_iterasi": len(history) - 1,
+      "durasi_detik": round(duration, 4) if duration is not None else None,
+    }
+    if extra_info:
+      report_data.update(extra_info)
+    report_data["final_state"] = state_to_dict(final_state)
+    if initial_state is not None:
+      report_data["initial_state"] = state_to_dict(initial_state)
+
+    save_yaml_report(yaml_report_path, report_data)
+    print(f"Hasil YAML dan grafik disimpan di: {save_dir}\n")
 
   if initial_state is not None:
     visualize_state(initial_state, save_path=init_path)
@@ -230,8 +217,7 @@ def visualize_hc_results(
   plot_title = title
   if duration is not None:
     plot_title += f" (Durasi: {duration:.4f}s, Iterasi: {len(history) - 1})"
-  plot_hc_curve(history, title=plot_title, save_path=plot_path)
-
+  plot_hc_curve(history, title=plot_title, save_path=curve_path)
   plt.show()
 
 
@@ -242,6 +228,7 @@ def visualize_sa_results(
   history_prob: list[float],
   duration: float | None = None,
   save_dir: str | None = None,
+  extra_info: dict | None = None,
 ) -> None:
   print(f"\n{'='*45}")
   print("Hasil Eksperimen: Simulated Annealing")
@@ -252,37 +239,49 @@ def visualize_sa_results(
   print(f"Banyak iterasi   : {len(history) - 1}")
   if duration is not None:
     print(f"Durasi pencarian : {duration:.4f} detik")
+  if extra_info:
+    for k, v in extra_info.items():
+      print(f"{k:<17}: {v}")
   print(f"{'='*45}")
 
   init_path = None
   final_path = None
-  plot_path = None
+  curve_path = None
 
   if save_dir:
     os.makedirs(save_dir, exist_ok=True)
     if initial_state is not None:
       init_path = os.path.join(save_dir, "initial_state.png")
+      initial_state.save_yaml(os.path.join(save_dir, "initial_state.yaml"))
     final_path = os.path.join(save_dir, "final_state.png")
-    plot_path = os.path.join(save_dir, "sa_hc_curves.png")
-    info_path = os.path.join(save_dir, os.path.basename(save_dir) + ".yaml")
+    final_state.save_yaml(os.path.join(save_dir, "final_state.yaml"))
+    curve_path = os.path.join(save_dir, "sa_curves.png")
+    yaml_report_path = os.path.join(save_dir, "result.yaml")
 
-    save_experiment_yaml(
-      info_path,
-      "Simulated Annealing",
-      initial_state,
-      final_state,
-      history,
-      duration=duration,
-    )
-    print(f"Hasil dan grafik disimpan di: {save_dir}\n")
+    report_data = {
+      "algorithm": "Simulated Annealing",
+      "objective_awal": objective(initial_state) if initial_state is not None else None,
+      "objective_akhir": objective(final_state),
+      "banyak_iterasi": len(history) - 1,
+      "durasi_detik": round(duration, 4) if duration is not None else None,
+    }
+    if extra_info:
+      report_data.update(extra_info)
+    report_data["final_state"] = state_to_dict(final_state)
+    if initial_state is not None:
+      report_data["initial_state"] = state_to_dict(initial_state)
+
+    save_yaml_report(yaml_report_path, report_data)
+    print(f"Hasil YAML dan grafik disimpan di: {save_dir}\n")
 
   if initial_state is not None:
     visualize_state(initial_state, save_path=init_path)
   visualize_state(final_state, save_path=final_path)
+
   sa_plot_title = "Simulated Annealing"
   if duration is not None:
     sa_plot_title += f" (Durasi: {duration:.4f}s, Iterasi: {len(history) - 1})"
-  plot_curves(history, history_prob, title=sa_plot_title, save_path=plot_path)
+  plot_curves(history, history_prob, title=sa_plot_title, save_path=curve_path)
   plt.show()
 
 
@@ -350,23 +349,25 @@ def visualize_ga_results(
     final_path = os.path.join(save_dir, "final_state.png")
     final_state.save_yaml(os.path.join(save_dir, "final_state.yaml"))
     curve_path = os.path.join(save_dir, "objective_curve.png")
-    info_path = os.path.join(save_dir, os.path.basename(save_dir) + ".yaml")
+    yaml_report_path = os.path.join(save_dir, os.path.basename(save_dir) + ".yaml")
 
-    extra_info: dict = {}
+    report_data: dict = {
+      "algorithm": title,
+      "objective_awal": objective(initial_state) if initial_state is not None else None,
+      "objective_akhir": objective(final_state),
+      "banyak_generasi": len(history_max) - 1,
+      "durasi_detik": round(duration, 4) if duration is not None else None,
+    }
     if population_size is not None:
-      extra_info["jumlah_populasi"] = population_size
+      report_data["jumlah_populasi"] = population_size
     if generations is not None:
-      extra_info["maks_generasi"] = generations
+      report_data["maks_generasi"] = generations
+    report_data["final_state"] = state_to_dict(final_state)
+    if initial_state is not None:
+      report_data["initial_state"] = state_to_dict(initial_state)
 
-    save_experiment_yaml(
-      info_path,
-      title,
-      initial_state,
-      final_state,
-      history_max,
-      duration=duration,
-      extra_info=extra_info if extra_info else None,
-    )
+    save_yaml_report(yaml_report_path, report_data)
+    print(f"Hasil YAML dan grafik disimpan di: {save_dir}\n")
 
   if initial_state is not None:
     visualize_state(initial_state, save_path=init_path)

@@ -1,3 +1,4 @@
+import random
 from copy import deepcopy
 from pathlib import Path
 from typing import TypedDict, cast
@@ -104,3 +105,17 @@ class StateFactory:
 
   def create_state(self) -> State:
     return State(Ship.new_from_config(self.ship), deepcopy(self.vehicles))
+
+  def create_random_state(self) -> State:
+    state = self.create_state()
+    candidates = state.vehicles_outside[:]
+    random.shuffle(candidates)
+
+    for v in candidates:
+      if state.ship.can_fit_weight(v):
+        if random.random() < 0.5:
+          state.ship.orient(v, "vertical" if v.orientation == "horizontal" else "horizontal")
+        if state.ship.try_place_randomly(v):
+          state.vehicles_outside.remove(v)
+
+    return state

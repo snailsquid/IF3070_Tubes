@@ -1,4 +1,6 @@
 {
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "typeCheckingMode": "standard"
 }

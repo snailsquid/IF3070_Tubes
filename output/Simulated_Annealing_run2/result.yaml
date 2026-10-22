@@ -1,110 +1,169 @@
 algorithm: Simulated Annealing
-objective_awal: 2050
-objective_akhir: 2350
+objective_awal: 650
+objective_akhir: 1500
 banyak_iterasi: 1838
-durasi_detik: 0.4465
+durasi_detik: 0.4254
 final_state:
   ship:
     width: 5
     height: 6
     max_capacity: 4500
-    total_weight: 4035
+    total_weight: 3000
     vehicles:
-    - id: truck-1
-      width: 1
-      height: 3
-      x: 0
-      y: 3
-      orientation: vertical
-      weight: 1000
-      shipping_fee: 500
-      eta: 2
-    - id: car-1
-      width: 2
-      height: 1
-      x: 3
-      y: 0
-      orientation: horizontal
-      weight: 500
-      shipping_fee: 100
-      eta: 3
-    - id: quadcopter-3
-      width: 2
-      height: 2
-      x: 3
-      y: 1
-      orientation: vertical
-      weight: 5
-      shipping_fee: 200
-      eta: 1
-    - id: quadcopter-1
-      width: 2
-      height: 2
-      x: 1
-      y: 1
-      orientation: vertical
-      weight: 5
-      shipping_fee: 200
-      eta: 1
-    - id: motorcycle-1
-      width: 1
-      height: 1
-      x: 1
-      y: 5
-      orientation: horizontal
-      weight: 20
-      shipping_fee: 50
-      eta: 2
-    - id: truck-3
-      width: 3
-      height: 1
-      x: 1
-      y: 3
-      orientation: horizontal
-      weight: 1000
-      shipping_fee: 500
-      eta: 2
     - id: truck-2
       width: 1
       height: 3
       x: 4
-      y: 3
+      y: 2
       orientation: vertical
       weight: 1000
       shipping_fee: 500
       eta: 2
-    - id: car-3
-      width: 2
+    - id: truck-4
+      width: 3
       height: 1
       x: 0
+      y: 5
+      orientation: horizontal
+      weight: 1000
+      shipping_fee: 500
+      eta: 2
+    - id: truck-1
+      width: 3
+      height: 1
+      x: 1
       y: 0
       orientation: horizontal
-      weight: 500
-      shipping_fee: 100
-      eta: 3
-    - id: quadcopter-2
-      width: 2
-      height: 2
-      x: 2
-      y: 4
-      orientation: horizontal
-      weight: 5
-      shipping_fee: 200
-      eta: 1
+      weight: 1000
+      shipping_fee: 500
+      eta: 2
   vehicles_outside:
-  - id: truck-4
+  - id: motorcycle-2
+    width: 1
+    height: 1
+    weight: 20
+    shipping_fee: 50
+    eta: 2
+  - id: motorcycle-3
+    width: 1
+    height: 1
+    weight: 20
+    shipping_fee: 50
+    eta: 2
+  - id: quadcopter-2
+    width: 2
+    height: 2
+    weight: 5
+    shipping_fee: 200
+    eta: 1
+  - id: motorcycle-1
+    width: 1
+    height: 1
+    weight: 20
+    shipping_fee: 50
+    eta: 2
+  - id: truck-3
     width: 3
     height: 1
     weight: 1000
     shipping_fee: 500
     eta: 2
+  - id: quadcopter-1
+    width: 2
+    height: 2
+    weight: 5
+    shipping_fee: 200
+    eta: 1
   - id: car-2
     width: 2
     height: 1
     weight: 500
     shipping_fee: 100
     eta: 3
-  - id: motorcycle-3
+  - id: car-1
+    width: 1
+    height: 2
+    weight: 500
+    shipping_fee: 100
+    eta: 3
+  - id: car-3
+    width: 1
+    height: 2
+    weight: 500
+    shipping_fee: 100
+    eta: 3
+  - id: quadcopter-3
+    width: 2
+    height: 2
+    weight: 5
+    shipping_fee: 200
+    eta: 1
+initial_state:
+  ship:
+    width: 5
+    height: 6
+    max_capacity: 4500
+    total_weight: 1520
+    vehicles:
+    - id: truck-3
+      width: 3
+      height: 1
+      x: 1
+      y: 0
+      orientation: horizontal
+      weight: 1000
+      shipping_fee: 500
+      eta: 2
+    - id: motorcycle-3
+      width: 1
+      height: 1
+      x: 0
+      y: 2
+      orientation: vertical
+      weight: 20
+      shipping_fee: 50
+      eta: 2
+    - id: car-2
+      width: 2
+      height: 1
+      x: 2
+      y: 3
+      orientation: horizontal
+      weight: 500
+      shipping_fee: 100
+      eta: 3
+  vehicles_outside:
+  - id: car-1
+    width: 1
+    height: 2
+    weight: 500
+    shipping_fee: 100
+    eta: 3
+  - id: car-3
+    width: 2
+    height: 1
+    weight: 500
+    shipping_fee: 100
+    eta: 3
+  - id: truck-1
+    width: 1
+    height: 3
+    weight: 1000
+    shipping_fee: 500
+    eta: 2
+  - id: truck-2
+    width: 1
+    height: 3
+    weight: 1000
+    shipping_fee: 500
+    eta: 2
+  - id: truck-4
+    width: 3
+    height: 1
+    weight: 1000
+    shipping_fee: 500
+    eta: 2
+  - id: motorcycle-1
     width: 1
     height: 1
     weight: 20
@@ -116,107 +175,12 @@ final_state:
     weight: 20
     shipping_fee: 50
     eta: 2
-initial_state:
-  ship:
-    width: 5
-    height: 6
-    max_capacity: 4500
-    total_weight: 4065
-    vehicles:
-    - id: truck-4
-      width: 3
-      height: 1
-      x: 0
-      y: 1
-      orientation: horizontal
-      weight: 1000
-      shipping_fee: 500
-      eta: 2
-    - id: car-1
-      width: 1
-      height: 2
-      x: 2
-      y: 4
-      orientation: vertical
-      weight: 500
-      shipping_fee: 100
-      eta: 3
-    - id: truck-3
-      width: 3
-      height: 1
-      x: 2
-      y: 0
-      orientation: horizontal
-      weight: 1000
-      shipping_fee: 500
-      eta: 2
-    - id: motorcycle-3
-      width: 1
-      height: 1
-      x: 0
-      y: 5
-      orientation: horizontal
-      weight: 20
-      shipping_fee: 50
-      eta: 2
-    - id: truck-1
-      width: 3
-      height: 1
-      x: 1
-      y: 2
-      orientation: horizontal
-      weight: 1000
-      shipping_fee: 500
-      eta: 2
-    - id: quadcopter-1
-      width: 2
-      height: 2
-      x: 3
-      y: 3
-      orientation: vertical
-      weight: 5
-      shipping_fee: 200
-      eta: 1
-    - id: car-2
-      width: 1
-      height: 2
-      x: 0
-      y: 2
-      orientation: vertical
-      weight: 500
-      shipping_fee: 100
-      eta: 3
-    - id: motorcycle-1
-      width: 1
-      height: 1
-      x: 1
-      y: 0
-      orientation: horizontal
-      weight: 20
-      shipping_fee: 50
-      eta: 2
-    - id: motorcycle-2
-      width: 1
-      height: 1
-      x: 0
-      y: 0
-      orientation: horizontal
-      weight: 20
-      shipping_fee: 50
-      eta: 2
-  vehicles_outside:
-  - id: car-3
-    width: 1
+  - id: quadcopter-1
+    width: 2
     height: 2
-    weight: 500
-    shipping_fee: 100
-    eta: 3
-  - id: truck-2
-    width: 1
-    height: 3
-    weight: 1000
-    shipping_fee: 500
-    eta: 2
+    weight: 5
+    shipping_fee: 200
+    eta: 1
   - id: quadcopter-2
     width: 2
     height: 2

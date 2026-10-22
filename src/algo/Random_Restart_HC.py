@@ -144,7 +144,7 @@ class RandomRestartHillClimb(_HillClimb):
     start_time = time.perf_counter()
     inner = SteepestAscentHillClimb(self.state_factory, self.max_iterations)
 
-    current = initial_state or self.state_factory.create_state()
+    current = initial_state if initial_state is not None else self.state_factory.create_random_state()
     self.initial_state = current
     best = inner.run(current)
     best_score = best.get_objective()
@@ -154,7 +154,7 @@ class RandomRestartHillClimb(_HillClimb):
 
     for _ in range(self.max_restarts):
       self.restarts += 1
-      start = self.state_factory.create_state()
+      start = self.state_factory.create_random_state()
       result = inner.run(start)
       self.history.extend(inner.history)
       self.iterations_per_restart.append(inner.iterations)

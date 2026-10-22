@@ -112,7 +112,7 @@ class StochasticHillClimb(_HillClimb):
 
   def run(self, initial_state: State | None = None) -> State:
     start_time = time.perf_counter()
-    current = initial_state or self.state_factory.create_state()
+    current = initial_state if initial_state is not None else self.state_factory.create_random_state()
     self.initial_state = current
     self.history = [current.get_objective()]
     self.iterations = 0

@@ -107,15 +107,22 @@ class StateFactory:
     return State(Ship.new_from_config(self.ship), deepcopy(self.vehicles))
 
   def create_random_state(self) -> State:
-    state = self.create_state()
-    candidates = state.vehicles_outside[:]
-    random.shuffle(candidates)
+      state = self.create_state()
+      candidates = state.vehicles_outside[:]
+      random.shuffle(candidates)
+      grid_width = state.ship.rect.width
+      grid_height = state.ship.rect.height
 
-    for v in candidates:
-      if state.ship.can_fit_weight(v):
-        if random.random() < 0.5:
-          state.ship.orient(v, "vertical" if v.orientation == "horizontal" else "horizontal")
-        if state.ship.try_place_randomly(v):
-          state.vehicles_outside.remove(v)
-
-    return state
+      for vehicle in candidates:
+          if random.random() > 0.5:
+              continue
+          orientation = random.choice(["horizontal", "vertical"])
+          rx = random.randint(0, grid_width - 1)
+          ry = random.randint(0, grid_height - 1)
+          vehicle.set_orientation(orientation)
+          loaded_weight = sum(v.weight for v in state.ship.vehicles)
+          if loaded_weight + vehicle.weight <= state.ship.max_capacity:
+              if state.ship.vehicle_can_fit(vehicle, rx, ry):
+                  state.ship.move(vehicle, rx, ry)
+                  state.vehicles_outside.remove(vehicle)
+      return state
